@@ -8,10 +8,12 @@ sse/ → SSE tabanlı FastAPI demo
 Streamable_HTTP/ → Streamable HTTP tabanlı demo
 
 ## Çalıştırma
- # Ortam
- pip install fastapi uvicorn tensorflow matplotlib numpy
+```bash
+# Ortam
+pip install fastapi uvicorn tensorflow matplotlib numpy
 
- # SSE
- cd sse && uvicorn app:app --reload --port 8000
- # Streamable HTTP
- cd Streamable_HTTP && uvicorn api:app --reload --port 8000
+# SSE
+cd sse && uvicorn app:app --reload --port 8000
+
+# Streamable HTTP
+cd Streamable_HTTP && uvicorn api:app --reload --port 8000

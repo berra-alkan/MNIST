@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>MNIST Eğitimi (SSE)</title>
+  <style>
+    body { font-family: system-ui, Arial; margin: 24px; }
+    #log { width: 100%; height: 240px; white-space: pre-wrap; }
+    .row { display: flex; gap: 16px; margin-top: 12px; }
+    .card { border: 1px solid #ddd; padding: 12px; border-radius: 8px; }
+    img { max-width: 360px; border: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <h2>MNIST Autoencoder — Canlı Eğitim</h2>
+
+  <label>Run ID:
+    <input id="runId" value="run-1" />
+  </label>
+  <button id="startBtn">Eğitimi Başlat</button>
+  <button id="stopBtn" disabled>Durdur</button>
+
+  <h3>Log</h3>
+  <textarea id="log" readonly></textarea>
+
+  <div class="row">
+    <div class="card">
+      <h4>Recon Grid</h4>
+      <img id="reconImg" alt="recon_grid" />
+    </div>
+    <div class="card">
+      <h4>Error Hist</h4>
+      <img id="histImg" alt="error_hist" />
+    </div>
+  </div>
+
+  <script>
+    let es = null;
+
+    function append(line) {
+      const ta = document.getElementById('log');
+      ta.value += line + "\n";
+      ta.scrollTop = ta.scrollHeight;
+    }
+
+    async function startTraining() {
+      const runId = document.getElementById('runId').value.trim() || "run-1";
+
+      // 1) SSE stream
+      if (es) es.close();
+      es = new EventSource(`/stream?run_id=${encodeURIComponent(runId)}`);
+
+      es.onopen = () => {
+        append(`[SSE] Bağlantı açıldı (run_id=${runId})`);
+        document.getElementById('stopBtn').disabled = false;
+      };
+      es.onerror = () => append(`[SSE] Hata veya bağlantı koptu`);
+
+      es.onmessage = (ev) => append(ev.data); // düz log
+
+      es.addEventListener('image', (ev) => {
+        try {
+          const payload = JSON.parse(ev.data);
+          if (payload.name === 'recon_grid') {
+            document.getElementById('reconImg').src = payload.b64;
+          } else if (payload.name === 'error_hist') {
+            document.getElementById('histImg').src = payload.b64;
+          }
+          append(`[IMG] ${payload.name} alındı`);
+        } catch (err) {
+          append(`[IMG] parse hatası: ${err}`);
+        }
+      });
+
+      // 2) eğitimi başlat
+      const res = await fetch(`/start?run_id=${encodeURIComponent(runId)}`, { method: 'POST' });
+      append(res.ok ? `[START] Eğitim komutu gönderildi.` : `[START] Hata: ${res.status}`);
+    }
+
+    function stopTraining() {
+      if (es) {
+        es.close();
+        es = null;
+        append(`[SSE] Bağlantı kapatıldı`);
+        document.getElementById('stopBtn').disabled = true;
+      }
+    }
+
+    document.getElementById('startBtn').addEventListener('click', startTraining);
+    document.getElementById('stopBtn').addEventListener('click', stopTraining);
+  </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ Bu mini proje, model eğitim sürecinde anlık log ve görsel çıktıların kul
 iki farklı yaklaşımı içerir: Server-Sent Events (SSE) ve Streamable HTTP.
 
 ## Klasörler
-sse/ → SSE tabanlı FastAPI demo
+sse/ → SSE tabanlı FastAPI demo, 
 Streamable_HTTP/ → Streamable HTTP tabanlı demo
 
 ## Çalıştırma
